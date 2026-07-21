@@ -23,7 +23,12 @@ public class CorsUtil {
 
         exchange.getResponseHeaders().set(
                 "Access-Control-Allow-Headers",
-                "Content-Type"
+                "Content-Type, Authorization"
+        );
+
+        exchange.getResponseHeaders().set(
+                "Access-Control-Max-Age",
+                "86400"
         );
     }
 
@@ -36,6 +41,7 @@ public class CorsUtil {
         if ("OPTIONS".equalsIgnoreCase(
                 exchange.getRequestMethod()
         )) {
+
             exchange.sendResponseHeaders(204, -1);
             exchange.close();
             return true;
