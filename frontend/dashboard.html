@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Food Expiry Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dashboard-page">
+
+<header class="top-header">
+    <div>
+        <h1>Food Expiry Management</h1>
+        <p id="welcomeUser"></p>
+    </div>
+
+    <button id="logoutButton" class="logout-btn">
+        Logout
+    </button>
+</header>
+
+<main class="main-content">
+
+    <!-- Statistics -->
+
+    <section class="stats-container">
+
+        <div class="stat-card">
+            <h3>Total Items</h3>
+            <p id="totalItems">0</p>
+        </div>
+
+        <div class="stat-card warning-card">
+            <h3>Expiring Soon</h3>
+            <p id="expiringCount">0</p>
+        </div>
+
+        <div class="stat-card expired-card">
+            <h3>Expired</h3>
+            <p id="expiredCount">0</p>
+        </div>
+
+    </section>
+
+    <!-- Add or Update Food -->
+
+    <section class="dashboard-section">
+
+        <h2 id="formTitle">Add Food Item</h2>
+
+        <form id="foodForm" class="food-form">
+
+            <input type="hidden" id="foodId">
+
+            <div class="form-group">
+                <label for="itemName">Item Name</label>
+
+                <input
+                    type="text"
+                    id="itemName"
+                    placeholder="Example: Milk"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+
+                <select id="category" required>
+                    <option value="">Select category</option>
+                    <option value="Dairy">Dairy</option>
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Bakery">Bakery</option>
+                    <option value="Meat">Meat</option>
+                    <option value="Beverages">Beverages</option>
+                    <option value="Snacks">Snacks</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+
+                <input
+                    type="number"
+                    id="quantity"
+                    min="1"
+                    placeholder="Enter quantity"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="purchaseDate">Purchase Date</label>
+
+                <input
+                    type="date"
+                    id="purchaseDate"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="expiryDate">Expiry Date</label>
+
+                <input
+                    type="date"
+                    id="expiryDate"
+                    required
+                >
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" id="saveButton">
+                    Add Food
+                </button>
+
+                <button
+                    type="button"
+                    id="cancelUpdateButton"
+                    class="secondary-button hidden"
+                >
+                    Cancel
+                </button>
+            </div>
+
+        </form>
+
+        <p id="foodMessage" class="message"></p>
+
+    </section>
+
+    <!-- Search and Filters -->
+
+    <section class="dashboard-section">
+
+        <h2>Search Food Items</h2>
+
+        <div class="search-container">
+
+            <input
+                type="text"
+                id="searchItemName"
+                placeholder="Search by item name"
+            >
+
+            <select id="searchCategory">
+                <option value="">All categories</option>
+                <option value="Dairy">Dairy</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Bakery">Bakery</option>
+                <option value="Meat">Meat</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Snacks">Snacks</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <button type="button" id="searchButton">
+                Search
+            </button>
+
+            <button
+                type="button"
+                id="showAllButton"
+                class="secondary-button"
+            >
+                Show All
+            </button>
+
+            <button
+                type="button"
+                id="showExpiringButton"
+                class="warning-button"
+            >
+                Expiring Soon
+            </button>
+
+            <button
+                type="button"
+                id="showExpiredButton"
+                class="danger-button"
+            >
+                Expired
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- Food Table -->
+
+    <section class="dashboard-section">
+
+        <div class="table-heading">
+            <h2 id="tableTitle">All Food Items</h2>
+            <button id="refreshButton" class="small-button">
+                Refresh
+            </button>
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Purchase Date</th>
+                    <th>Expiry Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+
+                <tbody id="foodTableBody">
+
+                <tr>
+                    <td colspan="7" class="empty-row">
+                        Loading items...
+                    </td>
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>
