@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Expiry Management</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#00c9ff,#92fe9d,#f6d365,#fda085);
+    background-size:400% 400%;
+    animation:bg 12s ease infinite;
+}
+
+@keyframes bg{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+}
+
+.card{
+    width:500px;
+    text-align:center;
+    padding:45px;
+    border-radius:25px;
+    background:rgba(255,255,255,0.18);
+    backdrop-filter:blur(15px);
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+
+h1{
+    color:white;
+    font-size:38px;
+    margin-bottom:20px;
+}
+
+p{
+    color:#fff;
+    font-size:18px;
+    line-height:1.6;
+    margin-bottom:35px;
+}
+
+button{
+    width:180px;
+    padding:15px;
+    margin:10px;
+    border:none;
+    border-radius:40px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.login{
+    background:#00e676;
+    color:white;
+}
+
+.register{
+    background:#ff4081;
+    color:white;
+}
+
+button:hover{
+    transform:translateY(-5px) scale(1.05);
+    box-shadow:0 10px 20px rgba(0,0,0,.3);
+}
+
+.footer{
+    margin-top:30px;
+    color:white;
+    font-size:15px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>🥗 Food Expiry Management</h1>
+
+    <p>
+        Track your food inventory effortlessly.<br>
+        Get expiry reminders, reduce food waste, and stay organized! 🍎🥛🥦
+    </p>
+
+    <a href="login.html">
+        <button class="login">🔑 Login</button>
+    </a>
+
+    <a href="register.html">
+        <button class="register">📝 Register</button>
+    </a>
+
+    <div class="footer">
+        🌱 Save Food • Save Money • Save Earth 🌍
+    </div>
+
+</div>
+
+</body>
+</html>
