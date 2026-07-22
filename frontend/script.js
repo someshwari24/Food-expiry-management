@@ -1,4 +1,4 @@
-const BASE_URL = "https://food-expiry-management.onrender.com";
+const BASE_URL = "https://food-expiry-management.onrender.com/";
 
 /* =========================================================
    Registration
