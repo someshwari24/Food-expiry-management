@@ -1,0 +1,10 @@
+com\foodexpiry\EmailService$1.class
+com\foodexpiry\ResponseUtil.class
+com\foodexpiry\FoodHandler.class
+com\foodexpiry\MainServer.class
+com\foodexpiry\EmailService.class
+com\foodexpiry\RequestUtil.class
+com\foodexpiry\CorsUtil.class
+com\foodexpiry\UserHandler.class
+com\foodexpiry\ExpiryNotificationService.class
+com\foodexpiry\DBConnection.class

@@ -8,12 +8,19 @@ import org.bson.Document;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainServer {
 
     public static void main(String[] args) {
 
+        ScheduledExecutorService scheduler =
+                Executors
+                        .newSingleThreadScheduledExecutor();
+
         try {
+
             int port = getPort();
 
             MongoDatabase database =
@@ -22,6 +29,38 @@ public class MainServer {
             database.runCommand(
                     new Document("ping", 1)
             );
+
+            ExpiryNotificationService
+                    notificationService =
+                    new ExpiryNotificationService(
+                            database
+                    );
+
+            /*
+             * Production:
+             * Check immediately when the server starts,
+             * then check every 24 hours.
+             */
+            scheduler.scheduleAtFixedRate(
+                    notificationService
+                            ::checkAndSendNotifications,
+                    0,
+                    24,
+                    TimeUnit.HOURS
+            );
+
+            /*
+             * For testing every minute,
+             * temporarily replace the above scheduler with:
+             *
+             * scheduler.scheduleAtFixedRate(
+             *     notificationService
+             *         ::checkAndSendNotifications,
+             *     0,
+             *     1,
+             *     TimeUnit.MINUTES
+             * );
+             */
 
             HttpServer server =
                     HttpServer.create(
@@ -64,7 +103,9 @@ public class MainServer {
 
             server.createContext(
                     "/api/foods/expiring-soon",
-                    new FoodHandler("expiringSoon")
+                    new FoodHandler(
+                            "expiringSoon"
+                    )
             );
 
             server.createContext(
@@ -86,16 +127,47 @@ public class MainServer {
                     Executors.newFixedThreadPool(10)
             );
 
-            Runtime.getRuntime().addShutdownHook(
-                    new Thread(() -> {
-                        System.out.println(
-                                "Stopping backend..."
-                        );
+            Runtime.getRuntime()
+                    .addShutdownHook(
+                            new Thread(() -> {
 
-                        server.stop(0);
-                        DBConnection.closeConnection();
-                    })
-            );
+                                System.out.println(
+                                        "Stopping backend..."
+                                );
+
+                                scheduler.shutdown();
+
+                                try {
+
+                                    if (!scheduler.awaitTermination(
+                                            5,
+                                            TimeUnit.SECONDS
+                                    )) {
+
+                                        scheduler.shutdownNow();
+                                    }
+
+                                } catch (
+                                        InterruptedException
+                                                exception
+                                ) {
+
+                                    scheduler.shutdownNow();
+
+                                    Thread.currentThread()
+                                            .interrupt();
+                                }
+
+                                server.stop(0);
+
+                                DBConnection
+                                        .closeConnection();
+
+                                System.out.println(
+                                        "Backend stopped."
+                                );
+                            })
+                    );
 
             server.start();
 
@@ -104,17 +176,26 @@ public class MainServer {
             );
 
             System.out.println(
-                    "Backend started on port " + port
+                    "Backend started on port "
+                            + port
             );
 
-        } catch (Exception e) {
+            System.out.println(
+                    "Email notification scheduler started."
+            );
+
+        } catch (Exception exception) {
+
+            scheduler.shutdownNow();
 
             System.err.println(
                     "Server failed to start: "
-                            + e.getMessage()
+                            + exception.getMessage()
             );
 
-            e.printStackTrace();
+            exception.printStackTrace();
+
+            DBConnection.closeConnection();
 
             System.exit(1);
         }
@@ -132,12 +213,16 @@ public class MainServer {
         }
 
         try {
-            return Integer.parseInt(portValue);
 
-        } catch (NumberFormatException e) {
+            return Integer.parseInt(
+                    portValue
+            );
+
+        } catch (NumberFormatException exception) {
 
             System.err.println(
-                    "Invalid PORT value. Using 8080."
+                    "Invalid PORT value. "
+                            + "Using port 8080."
             );
 
             return 8080;
