@@ -925,7 +925,7 @@ public class FoodHandler implements HttpHandler {
                             expiry
                     );
 
-            if (reminderDays >= totalDays) {
+            if (reminderDays > totalDays) {
 
                 throw new IllegalArgumentException(
                         "Reminder days cannot be greater "

@@ -16,7 +16,6 @@ import java.util.List;
 
 public class ExpiryNotificationService {
 
-    // Used when the food document does not contain reminderDays.
     private static final int DEFAULT_REMINDER_DAYS = 3;
 
     private final MongoCollection<Document> foodCollection;
@@ -27,8 +26,9 @@ public class ExpiryNotificationService {
             MongoDatabase database
     ) {
 
+        // Must match the collection used in FoodHandler.
         foodCollection =
-                database.getCollection("foods");
+                database.getCollection("food_items");
 
         userCollection =
                 database.getCollection("users");
@@ -86,6 +86,8 @@ public class ExpiryNotificationService {
                                     + ": "
                                     + exception.getMessage()
                     );
+
+                    exception.printStackTrace();
                 }
             }
 
@@ -122,6 +124,11 @@ public class ExpiryNotificationService {
         if (expiryDateValue == null
                 || expiryDateValue.isBlank()) {
 
+            System.err.println(
+                    "Expiry date missing for food: "
+                            + food.get("_id")
+            );
+
             return false;
         }
 
@@ -146,10 +153,6 @@ public class ExpiryNotificationService {
             return false;
         }
 
-        /*
-         * Read the reminder chosen by the user.
-         * If no value is available, use 3 days.
-         */
         int reminderDays =
                 getReminderDays(food);
 
@@ -159,11 +162,49 @@ public class ExpiryNotificationService {
                         expiryDate
                 );
 
+        String itemName =
+                firstNonBlank(
+                        readString(food, "itemName"),
+                        readString(food, "foodName"),
+                        readString(food, "name"),
+                        "Food item"
+                );
+
+        System.out.println(
+                "Checking food: " + itemName
+        );
+
+        System.out.println(
+                "Today: " + today
+        );
+
+        System.out.println(
+                "Expiry date: " + expiryDate
+        );
+
+        System.out.println(
+                "Remaining days: " + remainingDays
+        );
+
+        System.out.println(
+                "Reminder days: " + reminderDays
+        );
+
         /*
-         * Send the email when the remaining days equal
-         * the reminder days selected by the user.
+         * Example:
+         *
+         * remainingDays = 0
+         * reminderDays = 0
+         *
+         * Email is sent on the expiry date.
          */
         if (remainingDays != reminderDays) {
+
+            System.out.println(
+                    "Reminder not due for: "
+                            + itemName
+            );
+
             return false;
         }
 
@@ -172,6 +213,11 @@ public class ExpiryNotificationService {
                 today,
                 reminderDays
         )) {
+
+            System.out.println(
+                    "Notification already sent today for: "
+                            + itemName
+            );
 
             return false;
         }
@@ -219,13 +265,6 @@ public class ExpiryNotificationService {
                         "User"
                 );
 
-        String foodName =
-                firstNonBlank(
-                        readString(food, "foodName"),
-                        readString(food, "name"),
-                        "Food item"
-                );
-
         if (receiverEmail == null
                 || receiverEmail.isBlank()) {
 
@@ -237,11 +276,21 @@ public class ExpiryNotificationService {
             return false;
         }
 
+        System.out.println(
+                "Reminder matched for: "
+                        + itemName
+        );
+
+        System.out.println(
+                "Sending email to: "
+                        + receiverEmail
+        );
+
         boolean emailSent =
                 emailService.sendExpiryNotification(
                         receiverEmail,
                         userName,
-                        foodName,
+                        itemName,
                         expiryDate.toString(),
                         remainingDays
                 );
@@ -254,8 +303,19 @@ public class ExpiryNotificationService {
                     reminderDays
             );
 
+            System.out.println(
+                    "Expiry notification sent successfully "
+                            + "for: "
+                            + itemName
+            );
+
             return true;
         }
+
+        System.err.println(
+                "Email sending failed for: "
+                        + itemName
+        );
 
         return false;
     }
@@ -268,20 +328,34 @@ public class ExpiryNotificationService {
                 food.get("reminderDays");
 
         if (value == null) {
+
             return DEFAULT_REMINDER_DAYS;
+        }
+
+        if (value instanceof Number number) {
+
+            int reminderDays =
+                    number.intValue();
+
+            if (reminderDays < 0
+                    || reminderDays > 30) {
+
+                return DEFAULT_REMINDER_DAYS;
+            }
+
+            return reminderDays;
         }
 
         try {
 
             int reminderDays =
                     Integer.parseInt(
-                            value.toString()
+                            value.toString().trim()
                     );
 
-            /*
-             * Prevent invalid reminder values.
-             */
-            if (reminderDays < 0) {
+            if (reminderDays < 0
+                    || reminderDays > 30) {
+
                 return DEFAULT_REMINDER_DAYS;
             }
 
@@ -350,14 +424,15 @@ public class ExpiryNotificationService {
                         "notificationSentDate"
                 );
 
-        Integer previouslyUsedReminderDays =
-                food.getInteger(
+        Integer previousReminderDays =
+                readIntegerSafely(
+                        food,
                         "notificationReminderDays"
                 );
 
         return today.toString().equals(sentDate)
-                && previouslyUsedReminderDays != null
-                && previouslyUsedReminderDays
+                && previousReminderDays != null
+                && previousReminderDays
                 == reminderDays;
     }
 
@@ -400,6 +475,34 @@ public class ExpiryNotificationService {
                         )
                 )
         );
+    }
+
+    private Integer readIntegerSafely(
+            Document document,
+            String field
+    ) {
+
+        Object value =
+                document.get(field);
+
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        try {
+
+            return Integer.parseInt(
+                    value.toString().trim()
+            );
+
+        } catch (NumberFormatException exception) {
+
+            return null;
+        }
     }
 
     private String readString(
