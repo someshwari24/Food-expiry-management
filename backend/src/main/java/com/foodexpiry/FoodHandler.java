@@ -86,7 +86,7 @@ public class FoodHandler implements HttpHandler {
                     exchange,
                     500,
                     "error",
-                    exception.getMessage()
+                    "Internal server error"
             );
         }
     }
@@ -162,7 +162,7 @@ public class FoodHandler implements HttpHandler {
                 new Document()
                         .append(
                                 "userId",
-                                userId
+                                userId.trim()
                         )
                         .append(
                                 "itemName",
@@ -170,7 +170,7 @@ public class FoodHandler implements HttpHandler {
                         )
                         .append(
                                 "category",
-                                category
+                                category.trim()
                         )
                         .append(
                                 "quantity",
@@ -264,7 +264,7 @@ public class FoodHandler implements HttpHandler {
                 getCollection().find(
                         Filters.eq(
                                 "userId",
-                                userId
+                                userId.trim()
                         )
                 );
 
@@ -354,7 +354,7 @@ public class FoodHandler implements HttpHandler {
                         ),
                         Filters.eq(
                                 "userId",
-                                userId
+                                userId.trim()
                         )
                 );
 
@@ -366,7 +366,7 @@ public class FoodHandler implements HttpHandler {
                         ),
                         Updates.set(
                                 "category",
-                                category
+                                category.trim()
                         ),
                         Updates.set(
                                 "quantity",
@@ -483,7 +483,7 @@ public class FoodHandler implements HttpHandler {
                                 ),
                                 Filters.eq(
                                         "userId",
-                                        userId
+                                        userId.trim()
                                 )
                         )
                 );
@@ -555,7 +555,7 @@ public class FoodHandler implements HttpHandler {
         Bson filter =
                 Filters.eq(
                         "userId",
-                        userId
+                        userId.trim()
                 );
 
         if (!isBlank(itemName)) {
@@ -565,7 +565,7 @@ public class FoodHandler implements HttpHandler {
                             filter,
                             Filters.regex(
                                     "itemName",
-                                    itemName,
+                                    itemName.trim(),
                                     "i"
                             )
                     );
@@ -578,7 +578,9 @@ public class FoodHandler implements HttpHandler {
                             filter,
                             Filters.regex(
                                     "category",
-                                    "^" + category + "$",
+                                    "^"
+                                            + category.trim()
+                                            + "$",
                                     "i"
                             )
                     );
@@ -669,7 +671,7 @@ public class FoodHandler implements HttpHandler {
                 getCollection().find(
                         Filters.eq(
                                 "userId",
-                                userId
+                                userId.trim()
                         )
                 );
 
@@ -777,7 +779,7 @@ public class FoodHandler implements HttpHandler {
                 getCollection().find(
                         Filters.eq(
                                 "userId",
-                                userId
+                                userId.trim()
                         )
                 );
 
@@ -917,18 +919,18 @@ public class FoodHandler implements HttpHandler {
                 );
             }
 
-            long remainingDays =
+            long totalDays =
                     ChronoUnit.DAYS.between(
-                            LocalDate.now(),
+                            purchase,
                             expiry
                     );
 
-            if (remainingDays >= 0
-                    && reminderDays > remainingDays) {
+            if (reminderDays >= totalDays) {
 
                 throw new IllegalArgumentException(
                         "Reminder days cannot be greater "
-                                + "than the days remaining until expiry"
+                                + "than the days between "
+                                + "purchase and expiry"
                 );
             }
 
@@ -961,12 +963,14 @@ public class FoodHandler implements HttpHandler {
 
             return Integer.parseInt(
                     value.toString()
+                            .trim()
             );
 
         } catch (NumberFormatException exception) {
 
             throw new IllegalArgumentException(
-                    field + " must be a valid number"
+                    field
+                            + " must be a valid number"
             );
         }
     }
