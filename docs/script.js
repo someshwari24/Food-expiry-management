@@ -1,33 +1,42 @@
-const BASE_URL = "https://food-expiry-management.onrender.com/api";
+const BASE_URL =
+    "https://food-expiry-management.onrender.com/api";
 
 /* =========================================================
    Registration
 ========================================================= */
 
-const registerForm = document.getElementById("registerForm");
+const registerForm =
+    document.getElementById("registerForm");
 
 if (registerForm) {
+
     registerForm.addEventListener(
         "submit",
         async function (event) {
+
             event.preventDefault();
 
-            const name = document
-                .getElementById("registerName")
-                .value
-                .trim();
+            const name =
+                document
+                    .getElementById("registerName")
+                    .value
+                    .trim();
 
-            const email = document
-                .getElementById("registerEmail")
-                .value
-                .trim();
+            const email =
+                document
+                    .getElementById("registerEmail")
+                    .value
+                    .trim();
 
-            const password = document
-                .getElementById("registerPassword")
-                .value;
+            const password =
+                document
+                    .getElementById("registerPassword")
+                    .value;
 
             const message =
-                document.getElementById("registerMessage");
+                document.getElementById(
+                    "registerMessage"
+                );
 
             setMessage(
                 message,
@@ -36,26 +45,33 @@ if (registerForm) {
             );
 
             try {
-                const response = await fetch(
-                    `${BASE_URL}/register`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-                        body: JSON.stringify({
-                            name,
-                            email,
-                            password
-                        })
-                    }
-                );
+
+                const response =
+                    await fetch(
+                        `${BASE_URL}/register`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                name,
+                                email,
+                                password
+                            })
+                        }
+                    );
 
                 const data =
-                    await readResponseJson(response);
+                    await readResponseJson(
+                        response
+                    );
 
                 if (response.ok) {
+
                     setMessage(
                         message,
                         data.message ||
@@ -65,11 +81,18 @@ if (registerForm) {
 
                     registerForm.reset();
 
-                    setTimeout(() => {
-                        window.location.href =
-                            "login.html";
-                    }, 1000);
+                    setTimeout(
+                        () => {
+
+                            window.location.href =
+                                "login.html";
+
+                        },
+                        1000
+                    );
+
                 } else {
+
                     setMessage(
                         message,
                         data.message ||
@@ -77,7 +100,9 @@ if (registerForm) {
                         "error"
                     );
                 }
+
             } catch (error) {
+
                 console.error(
                     "Registration error:",
                     error
@@ -97,25 +122,32 @@ if (registerForm) {
    Login
 ========================================================= */
 
-const loginForm = document.getElementById("loginForm");
+const loginForm =
+    document.getElementById("loginForm");
 
 if (loginForm) {
+
     loginForm.addEventListener(
         "submit",
         async function (event) {
+
             event.preventDefault();
 
-            const email = document
-                .getElementById("loginEmail")
-                .value
-                .trim();
+            const email =
+                document
+                    .getElementById("loginEmail")
+                    .value
+                    .trim();
 
-            const password = document
-                .getElementById("loginPassword")
-                .value;
+            const password =
+                document
+                    .getElementById("loginPassword")
+                    .value;
 
             const message =
-                document.getElementById("loginMessage");
+                document.getElementById(
+                    "loginMessage"
+                );
 
             setMessage(
                 message,
@@ -124,25 +156,32 @@ if (loginForm) {
             );
 
             try {
-                const response = await fetch(
-                    `${BASE_URL}/login`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-                        body: JSON.stringify({
-                            email,
-                            password
-                        })
-                    }
-                );
+
+                const response =
+                    await fetch(
+                        `${BASE_URL}/login`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                email,
+                                password
+                            })
+                        }
+                    );
 
                 const data =
-                    await readResponseJson(response);
+                    await readResponseJson(
+                        response
+                    );
 
                 if (response.ok) {
+
                     localStorage.setItem(
                         "userId",
                         data.userId
@@ -165,11 +204,18 @@ if (loginForm) {
                         "success"
                     );
 
-                    setTimeout(() => {
-                        window.location.href =
-                            "dashboard.html";
-                    }, 600);
+                    setTimeout(
+                        () => {
+
+                            window.location.href =
+                                "dashboard.html";
+
+                        },
+                        600
+                    );
+
                 } else {
+
                     setMessage(
                         message,
                         data.message ||
@@ -177,7 +223,9 @@ if (loginForm) {
                         "error"
                     );
                 }
+
             } catch (error) {
+
                 console.error(
                     "Login error:",
                     error
@@ -205,6 +253,7 @@ if (foodForm) {
 }
 
 function initializeDashboard() {
+
     const userId =
         localStorage.getItem("userId");
 
@@ -212,14 +261,20 @@ function initializeDashboard() {
         localStorage.getItem("userName");
 
     if (!userId) {
-        window.location.href = "login.html";
+
+        window.location.href =
+            "login.html";
+
         return;
     }
 
     const welcomeUser =
-        document.getElementById("welcomeUser");
+        document.getElementById(
+            "welcomeUser"
+        );
 
     if (welcomeUser) {
+
         welcomeUser.textContent =
             `Welcome, ${userName || "User"}`;
     }
@@ -265,6 +320,7 @@ function initializeDashboard() {
     );
 
     loadFoods();
+
     loadDashboardStatistics();
 }
 
@@ -273,55 +329,88 @@ function initializeDashboard() {
 ========================================================= */
 
 async function saveFood(event) {
+
     event.preventDefault();
 
-    const foodId = document
-        .getElementById("foodId")
-        .value
-        .trim();
+    const foodId =
+        document
+            .getElementById("foodId")
+            .value
+            .trim();
 
     const userId =
         localStorage.getItem("userId");
 
     if (!userId) {
+
         logout();
+
         return;
     }
 
-    const foodData = {
-        userId,
-
-        itemName: document
-            .getElementById("itemName")
-            .value
-            .trim(),
-
-        category: document
-            .getElementById("category")
-            .value,
-
-        quantity: Number(
+    const reminderDays =
+        Number(
             document
-                .getElementById("quantity")
+                .getElementById("reminderDays")
                 .value
-        ),
+        );
 
-        purchaseDate: document
-            .getElementById("purchaseDate")
-            .value,
+    const foodData = {
 
-        expiryDate: document
-            .getElementById("expiryDate")
-            .value
+        userId: userId,
+
+        itemName:
+            document
+                .getElementById("itemName")
+                .value
+                .trim(),
+
+        category:
+            document
+                .getElementById("category")
+                .value,
+
+        quantity:
+            Number(
+                document
+                    .getElementById("quantity")
+                    .value
+            ),
+
+        purchaseDate:
+            document
+                .getElementById("purchaseDate")
+                .value,
+
+        expiryDate:
+            document
+                .getElementById("expiryDate")
+                .value,
+
+        reminderDays:
+            reminderDays
     };
 
-    const message =
-        document.getElementById("foodMessage");
+    console.log(
+        "Food data being sent:",
+        foodData
+    );
 
-    if (!validateFoodData(foodData)) {
+    const message =
+        document.getElementById(
+            "foodMessage"
+        );
+
+    const validationMessage =
+        validateFoodData(
+            foodData
+        );
+
+    if (validationMessage) {
+
         setMessage(
             message,
-            "Please enter valid food details",
+            validationMessage,
             "error"
         );
 
@@ -336,40 +425,71 @@ async function saveFood(event) {
         ""
     );
 
+    const saveButton =
+        document.getElementById(
+            "saveButton"
+        );
+
+    if (saveButton) {
+
+        saveButton.disabled = true;
+
+        saveButton.textContent =
+            foodId
+                ? "Updating..."
+                : "Adding...";
+    }
+
     try {
+
         let url;
         let method;
 
         if (foodId) {
-            url = `${BASE_URL}/foods/update`;
-            method = "PUT";
 
-            /*
-             * Java backend expects:
-             * String id = input.getString("id");
-             */
-            foodData.id = foodId;
+            url =
+                `${BASE_URL}/foods/update`;
+
+            method =
+                "PUT";
+
+            foodData.id =
+                foodId;
+
         } else {
-            url = `${BASE_URL}/foods/add`;
-            method = "POST";
+
+            url =
+                `${BASE_URL}/foods/add`;
+
+            method =
+                "POST";
         }
 
-        const response = await fetch(
-            url,
-            {
-                method,
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body: JSON.stringify(foodData)
-            }
-        );
+        const response =
+            await fetch(
+                url,
+                {
+                    method: method,
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            foodData
+                        )
+                }
+            );
 
         const data =
-            await readResponseJson(response);
+            await readResponseJson(
+                response
+            );
 
         if (response.ok) {
+
             setMessage(
                 message,
                 data.message ||
@@ -381,13 +501,17 @@ async function saveFood(event) {
                 "success"
             );
 
-            resetFoodForm();
+            resetFoodForm(
+                false
+            );
 
             await Promise.all([
                 loadFoods(),
                 loadDashboardStatistics()
             ]);
+
         } else {
+
             setMessage(
                 message,
                 data.message ||
@@ -395,7 +519,9 @@ async function saveFood(event) {
                 "error"
             );
         }
+
     } catch (error) {
+
         console.error(
             "Save food error:",
             error
@@ -406,6 +532,21 @@ async function saveFood(event) {
             "Unable to connect to backend",
             "error"
         );
+
+    } finally {
+
+        if (saveButton) {
+
+            saveButton.disabled =
+                false;
+
+            saveButton.textContent =
+                document
+                    .getElementById("foodId")
+                    .value
+                    ? "Update Food"
+                    : "Add Food";
+        }
     }
 }
 
@@ -414,28 +555,41 @@ async function saveFood(event) {
 ========================================================= */
 
 async function loadFoods() {
+
     const userId =
         localStorage.getItem("userId");
 
     if (!userId) {
+
         logout();
+
         return;
     }
 
-    setTableTitle("All Food Items");
+    setTableTitle(
+        "All Food Items"
+    );
+
     showTableLoading();
 
     try {
-        const response = await fetch(
-            `${BASE_URL}/foods?userId=${
-                encodeURIComponent(userId)
-            }`
-        );
+
+        const response =
+            await fetch(
+                `${BASE_URL}/foods?userId=${
+                    encodeURIComponent(
+                        userId
+                    )
+                }`
+            );
 
         const data =
-            await readResponseJson(response);
+            await readResponseJson(
+                response
+            );
 
         if (!response.ok) {
+
             throw new Error(
                 data.message ||
                     "Failed to retrieve foods"
@@ -445,7 +599,9 @@ async function loadFoods() {
         displayFoods(
             getFoodArray(data)
         );
+
     } catch (error) {
+
         console.error(
             "Load foods error:",
             error
@@ -462,22 +618,27 @@ async function loadFoods() {
 ========================================================= */
 
 async function searchFoods() {
+
     const userId =
         localStorage.getItem("userId");
 
     if (!userId) {
+
         logout();
+
         return;
     }
 
-    const itemName = document
-        .getElementById("searchItemName")
-        .value
-        .trim();
+    const itemName =
+        document
+            .getElementById("searchItemName")
+            .value
+            .trim();
 
-    const category = document
-        .getElementById("searchCategory")
-        .value;
+    const category =
+        document
+            .getElementById("searchCategory")
+            .value;
 
     const parameters =
         new URLSearchParams();
@@ -488,6 +649,7 @@ async function searchFoods() {
     );
 
     if (itemName) {
+
         parameters.append(
             "itemName",
             itemName
@@ -495,24 +657,33 @@ async function searchFoods() {
     }
 
     if (category) {
+
         parameters.append(
             "category",
             category
         );
     }
 
-    setTableTitle("Search Results");
+    setTableTitle(
+        "Search Results"
+    );
+
     showTableLoading();
 
     try {
-        const response = await fetch(
-            `${BASE_URL}/foods/search?${parameters.toString()}`
-        );
+
+        const response =
+            await fetch(
+                `${BASE_URL}/foods/search?${parameters.toString()}`
+            );
 
         const data =
-            await readResponseJson(response);
+            await readResponseJson(
+                response
+            );
 
         if (!response.ok) {
+
             throw new Error(
                 data.message ||
                     "Search failed"
@@ -522,7 +693,9 @@ async function searchFoods() {
         displayFoods(
             getFoodArray(data)
         );
+
     } catch (error) {
+
         console.error(
             "Search error:",
             error
@@ -539,11 +712,14 @@ async function searchFoods() {
 ========================================================= */
 
 async function loadExpiringFoods() {
+
     const userId =
         localStorage.getItem("userId");
 
     if (!userId) {
+
         logout();
+
         return;
     }
 
@@ -554,16 +730,23 @@ async function loadExpiringFoods() {
     showTableLoading();
 
     try {
-        const response = await fetch(
-            `${BASE_URL}/foods/expiring-soon?userId=${
-                encodeURIComponent(userId)
-            }&days=7`
-        );
+
+        const response =
+            await fetch(
+                `${BASE_URL}/foods/expiring-soon?userId=${
+                    encodeURIComponent(
+                        userId
+                    )
+                }&days=7`
+            );
 
         const data =
-            await readResponseJson(response);
+            await readResponseJson(
+                response
+            );
 
         if (!response.ok) {
+
             throw new Error(
                 data.message ||
                     "Failed to retrieve expiring items"
@@ -573,7 +756,9 @@ async function loadExpiringFoods() {
         displayFoods(
             getFoodArray(data)
         );
+
     } catch (error) {
+
         console.error(
             "Expiring foods error:",
             error
@@ -590,11 +775,14 @@ async function loadExpiringFoods() {
 ========================================================= */
 
 async function loadExpiredFoods() {
+
     const userId =
         localStorage.getItem("userId");
 
     if (!userId) {
+
         logout();
+
         return;
     }
 
@@ -605,16 +793,23 @@ async function loadExpiredFoods() {
     showTableLoading();
 
     try {
-        const response = await fetch(
-            `${BASE_URL}/foods/expired?userId=${
-                encodeURIComponent(userId)
-            }`
-        );
+
+        const response =
+            await fetch(
+                `${BASE_URL}/foods/expired?userId=${
+                    encodeURIComponent(
+                        userId
+                    )
+                }`
+            );
 
         const data =
-            await readResponseJson(response);
+            await readResponseJson(
+                response
+            );
 
         if (!response.ok) {
+
             throw new Error(
                 data.message ||
                     "Failed to retrieve expired items"
@@ -624,7 +819,9 @@ async function loadExpiredFoods() {
         displayFoods(
             getFoodArray(data)
         );
+
     } catch (error) {
+
         console.error(
             "Expired foods error:",
             error
@@ -641,22 +838,28 @@ async function loadExpiredFoods() {
 ========================================================= */
 
 function displayFoods(foods) {
+
     const tableBody =
-        document.getElementById("foodTableBody");
+        document.getElementById(
+            "foodTableBody"
+        );
 
     if (!tableBody) {
         return;
     }
 
-    tableBody.innerHTML = "";
+    tableBody.innerHTML =
+        "";
 
-    if (!Array.isArray(foods)
-            || foods.length === 0) {
+    if (
+        !Array.isArray(foods)
+        || foods.length === 0
+    ) {
 
         tableBody.innerHTML = `
             <tr>
                 <td
-                    colspan="7"
+                    colspan="8"
                     class="empty-row"
                 >
                     No food items found
@@ -667,88 +870,134 @@ function displayFoods(foods) {
         return;
     }
 
-    foods.forEach(food => {
-        const row =
-            document.createElement("tr");
+    foods.forEach(
+        food => {
 
-        const id =
-            getFoodId(food);
+            const row =
+                document.createElement(
+                    "tr"
+                );
 
-        const statusData =
-            calculateStatus(
-                food.expiryDate
+            const id =
+                getFoodId(food);
+
+            const statusData =
+                calculateStatus(
+                    food.expiryDate
+                );
+
+            const reminderText =
+                formatReminderDays(
+                    food.reminderDays
+                );
+
+            row.innerHTML = `
+                <td>
+                    ${escapeHtml(
+                        food.itemName
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        food.category
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        food.quantity
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        formatDate(
+                            food.purchaseDate
+                        )
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        formatDate(
+                            food.expiryDate
+                        )
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        reminderText
+                    )}
+                </td>
+
+                <td>
+                    <span
+                        class="status ${statusData.className}"
+                    >
+                        ${escapeHtml(
+                            statusData.text
+                        )}
+                    </span>
+                </td>
+
+                <td>
+                    <div class="action-buttons">
+
+                        <button
+                            type="button"
+                            class="edit-button"
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            type="button"
+                            class="delete-button"
+                        >
+                            Delete
+                        </button>
+
+                    </div>
+                </td>
+            `;
+
+            const editButton =
+                row.querySelector(
+                    ".edit-button"
+                );
+
+            const deleteButton =
+                row.querySelector(
+                    ".delete-button"
+                );
+
+            editButton.addEventListener(
+                "click",
+                function () {
+
+                    editFood(
+                        food
+                    );
+                }
             );
 
-        row.innerHTML = `
-            <td>
-                ${escapeHtml(food.itemName)}
-            </td>
+            deleteButton.addEventListener(
+                "click",
+                function () {
 
-            <td>
-                ${escapeHtml(food.category)}
-            </td>
+                    deleteFood(
+                        id
+                    );
+                }
+            );
 
-            <td>
-                ${escapeHtml(food.quantity)}
-            </td>
-
-            <td>
-                ${escapeHtml(food.purchaseDate)}
-            </td>
-
-            <td>
-                ${escapeHtml(food.expiryDate)}
-            </td>
-
-            <td>
-                <span
-                    class="status ${statusData.className}"
-                >
-                    ${escapeHtml(statusData.text)}
-                </span>
-            </td>
-
-            <td>
-                <div class="action-buttons">
-                    <button
-                        type="button"
-                        class="edit-button"
-                    >
-                        Edit
-                    </button>
-
-                    <button
-                        type="button"
-                        class="delete-button"
-                    >
-                        Delete
-                    </button>
-                </div>
-            </td>
-        `;
-
-        const editButton =
-            row.querySelector(".edit-button");
-
-        const deleteButton =
-            row.querySelector(".delete-button");
-
-        editButton.addEventListener(
-            "click",
-            function () {
-                editFood(food);
-            }
-        );
-
-        deleteButton.addEventListener(
-            "click",
-            function () {
-                deleteFood(id);
-            }
-        );
-
-        tableBody.appendChild(row);
-    });
+            tableBody.appendChild(
+                row
+            );
+        }
+    );
 }
 
 /* =========================================================
@@ -756,10 +1005,12 @@ function displayFoods(foods) {
 ========================================================= */
 
 function editFood(food) {
+
     const foodId =
         getFoodId(food);
 
     if (!foodId) {
+
         alert(
             "Unable to identify this food item"
         );
@@ -769,27 +1020,38 @@ function editFood(food) {
 
     document
         .getElementById("foodId")
-        .value = foodId;
+        .value =
+            foodId;
 
     document
         .getElementById("itemName")
-        .value = food.itemName || "";
+        .value =
+            food.itemName || "";
 
     document
         .getElementById("category")
-        .value = food.category || "";
+        .value =
+            food.category || "";
 
     document
         .getElementById("quantity")
-        .value = food.quantity || "";
+        .value =
+            food.quantity || "";
 
     document
         .getElementById("purchaseDate")
-        .value = food.purchaseDate || "";
+        .value =
+            food.purchaseDate || "";
 
     document
         .getElementById("expiryDate")
-        .value = food.expiryDate || "";
+        .value =
+            food.expiryDate || "";
+
+    document
+        .getElementById("reminderDays")
+        .value =
+            food.reminderDays ?? 0;
 
     document
         .getElementById("formTitle")
@@ -802,12 +1064,18 @@ function editFood(food) {
             "Update Food";
 
     document
-        .getElementById("cancelUpdateButton")
+        .getElementById(
+            "cancelUpdateButton"
+        )
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
     setMessage(
-        document.getElementById("foodMessage"),
+        document.getElementById(
+            "foodMessage"
+        ),
         "",
         ""
     );
@@ -823,7 +1091,9 @@ function editFood(food) {
 ========================================================= */
 
 async function deleteFood(foodId) {
+
     if (!foodId) {
+
         alert(
             "Unable to identify this food item"
         );
@@ -831,9 +1101,10 @@ async function deleteFood(foodId) {
         return;
     }
 
-    const confirmed = window.confirm(
-        "Are you sure you want to delete this food item?"
-    );
+    const confirmed =
+        window.confirm(
+            "Are you sure you want to delete this food item?"
+        );
 
     if (!confirmed) {
         return;
@@ -843,34 +1114,40 @@ async function deleteFood(foodId) {
         localStorage.getItem("userId");
 
     if (!userId) {
+
         logout();
+
         return;
     }
 
     try {
-        const response = await fetch(
-            `${BASE_URL}/foods/delete`,
-            {
-                method: "DELETE",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body: JSON.stringify({
-                    /*
-                     * Java backend expects:
-                     * String id = input.getString("id");
-                     */
-                    id: foodId,
-                    userId
-                })
-            }
-        );
+
+        const response =
+            await fetch(
+                `${BASE_URL}/foods/delete`,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            id: foodId,
+                            userId: userId
+                        })
+                }
+            );
 
         const data =
-            await readResponseJson(response);
+            await readResponseJson(
+                response
+            );
 
         if (response.ok) {
+
             alert(
                 data.message ||
                     "Food deleted successfully"
@@ -880,13 +1157,17 @@ async function deleteFood(foodId) {
                 loadFoods(),
                 loadDashboardStatistics()
             ]);
+
         } else {
+
             alert(
                 data.message ||
                     "Unable to delete food"
             );
         }
+
     } catch (error) {
+
         console.error(
             "Delete food error:",
             error
@@ -903,6 +1184,7 @@ async function deleteFood(foodId) {
 ========================================================= */
 
 async function loadDashboardStatistics() {
+
     const userId =
         localStorage.getItem("userId");
 
@@ -911,38 +1193,52 @@ async function loadDashboardStatistics() {
     }
 
     try {
+
         const encodedUserId =
-            encodeURIComponent(userId);
+            encodeURIComponent(
+                userId
+            );
 
         const [
             allResponse,
             expiringResponse,
             expiredResponse
-        ] = await Promise.all([
-            fetch(
-                `${BASE_URL}/foods?userId=${encodedUserId}`
-            ),
+        ] =
+            await Promise.all([
+                fetch(
+                    `${BASE_URL}/foods?userId=${encodedUserId}`
+                ),
 
-            fetch(
-                `${BASE_URL}/foods/expiring-soon?userId=${encodedUserId}&days=7`
-            ),
+                fetch(
+                    `${BASE_URL}/foods/expiring-soon?userId=${encodedUserId}&days=7`
+                ),
 
-            fetch(
-                `${BASE_URL}/foods/expired?userId=${encodedUserId}`
-            )
-        ]);
+                fetch(
+                    `${BASE_URL}/foods/expired?userId=${encodedUserId}`
+                )
+            ]);
 
         const [
             allData,
             expiringData,
             expiredData
-        ] = await Promise.all([
-            readResponseJson(allResponse),
-            readResponseJson(expiringResponse),
-            readResponseJson(expiredResponse)
-        ]);
+        ] =
+            await Promise.all([
+                readResponseJson(
+                    allResponse
+                ),
+
+                readResponseJson(
+                    expiringResponse
+                ),
+
+                readResponseJson(
+                    expiredResponse
+                )
+            ]);
 
         if (!allResponse.ok) {
+
             throw new Error(
                 allData.message ||
                     "Failed to load total items"
@@ -950,6 +1246,7 @@ async function loadDashboardStatistics() {
         }
 
         if (!expiringResponse.ok) {
+
             throw new Error(
                 expiringData.message ||
                     "Failed to load expiring items"
@@ -957,6 +1254,7 @@ async function loadDashboardStatistics() {
         }
 
         if (!expiredResponse.ok) {
+
             throw new Error(
                 expiredData.message ||
                     "Failed to load expired items"
@@ -964,13 +1262,19 @@ async function loadDashboardStatistics() {
         }
 
         const allFoods =
-            getFoodArray(allData);
+            getFoodArray(
+                allData
+            );
 
         const expiringFoods =
-            getFoodArray(expiringData);
+            getFoodArray(
+                expiringData
+            );
 
         const expiredFoods =
-            getFoodArray(expiredData);
+            getFoodArray(
+                expiredData
+            );
 
         setElementText(
             "totalItems",
@@ -986,7 +1290,9 @@ async function loadDashboardStatistics() {
             "expiredCount",
             expiredFoods.length
         );
+
     } catch (error) {
+
         console.error(
             "Statistics error:",
             error
@@ -999,17 +1305,28 @@ async function loadDashboardStatistics() {
 ========================================================= */
 
 function getFoodArray(data) {
+
     if (Array.isArray(data)) {
         return data;
     }
 
-    if (data
-            && Array.isArray(data.foods)) {
+    if (
+        data
+        && Array.isArray(
+            data.foods
+        )
+    ) {
+
         return data.foods;
     }
 
-    if (data
-            && Array.isArray(data.items)) {
+    if (
+        data
+        && Array.isArray(
+            data.items
+        )
+    ) {
+
         return data.items;
     }
 
@@ -1017,39 +1334,62 @@ function getFoodArray(data) {
 }
 
 function getFoodId(food) {
+
     if (!food) {
         return "";
     }
 
-    if (typeof food._id === "string") {
+    if (
+        typeof food._id ===
+        "string"
+    ) {
+
         return food._id;
     }
 
-    if (food._id
-            && typeof food._id.$oid === "string") {
+    if (
+        food._id
+        && typeof food._id.$oid ===
+        "string"
+    ) {
+
         return food._id.$oid;
     }
 
-    if (typeof food.foodId === "string") {
+    if (
+        typeof food.foodId ===
+        "string"
+    ) {
+
         return food.foodId;
     }
 
-    if (typeof food.id === "string") {
+    if (
+        typeof food.id ===
+        "string"
+    ) {
+
         return food.id;
     }
 
     return "";
 }
 
-function calculateStatus(expiryDateValue) {
+function calculateStatus(
+    expiryDateValue
+) {
+
     if (!expiryDateValue) {
+
         return {
             text: "Unknown",
-            className: "status-warning"
+            className:
+                "status-warning"
         };
     }
 
-    const today = new Date();
+    const today =
+        new Date();
 
     today.setHours(
         0,
@@ -1063,12 +1403,16 @@ function calculateStatus(expiryDateValue) {
             `${expiryDateValue}T00:00:00`
         );
 
-    if (Number.isNaN(
+    if (
+        Number.isNaN(
             expiryDate.getTime()
-    )) {
+        )
+    ) {
+
         return {
             text: "Invalid Date",
-            className: "status-warning"
+            className:
+                "status-warning"
         };
     }
 
@@ -1078,7 +1422,8 @@ function calculateStatus(expiryDateValue) {
 
     const days =
         Math.ceil(
-            difference /
+            difference
+            /
             (
                 1000
                 * 60
@@ -1088,61 +1433,280 @@ function calculateStatus(expiryDateValue) {
         );
 
     if (days < 0) {
+
         return {
             text: "Expired",
-            className: "status-expired"
+            className:
+                "status-expired"
         };
     }
 
     if (days === 0) {
+
         return {
             text: "Expires Today",
-            className: "status-warning"
+            className:
+                "status-warning"
         };
     }
 
     if (days <= 7) {
+
         return {
-            text: `${days} day(s) left`,
-            className: "status-warning"
+            text:
+                `${days} day(s) left`,
+
+            className:
+                "status-warning"
         };
     }
 
     return {
         text: "Safe",
-        className: "status-safe"
+        className:
+            "status-safe"
     };
 }
 
-function validateFoodData(foodData) {
-    return Boolean(
-        foodData.userId
-        && foodData.itemName
-        && foodData.category
-        && Number.isFinite(
+function validateFoodData(
+    foodData
+) {
+
+    if (!foodData.userId) {
+
+        return "Please log in again";
+    }
+
+    if (!foodData.itemName) {
+
+        return "Please enter the item name";
+    }
+
+    if (!foodData.category) {
+
+        return "Please select a category";
+    }
+
+    if (
+        !Number.isFinite(
             foodData.quantity
         )
-        && foodData.quantity > 0
-        && foodData.purchaseDate
-        && foodData.expiryDate
-        && foodData.expiryDate
-            >= foodData.purchaseDate
+        || foodData.quantity <= 0
+    ) {
+
+        return "Quantity must be greater than zero";
+    }
+
+    if (!foodData.purchaseDate) {
+
+        return "Please select the purchase date";
+    }
+
+    if (!foodData.expiryDate) {
+
+        return "Please select the expiry date";
+    }
+
+    if (
+        foodData.expiryDate
+        < foodData.purchaseDate
+    ) {
+
+        return "Expiry date cannot be before purchase date";
+    }
+
+    if (
+        !Number.isInteger(
+            foodData.reminderDays
+        )
+        || foodData.reminderDays < 0
+    ) {
+
+        return "Please select valid reminder days";
+    }
+
+    const purchaseDate =
+        parseLocalDate(
+            foodData.purchaseDate
+        );
+
+    const expiryDate =
+        parseLocalDate(
+            foodData.expiryDate
+        );
+
+    if (
+        !purchaseDate
+        || !expiryDate
+    ) {
+
+        return "Please select valid dates";
+    }
+
+    const totalDays =
+        calculateDaysBetween(
+            purchaseDate,
+            expiryDate
+        );
+
+    if (
+        foodData.reminderDays
+        > totalDays
+    ) {
+
+        return (
+            "Reminder days cannot be greater "
+            + "than the days between purchase "
+            + "and expiry"
+        );
+    }
+
+    return "";
+}
+
+function calculateDaysBetween(
+    firstDate,
+    secondDate
+) {
+
+    const millisecondsPerDay =
+        1000
+        * 60
+        * 60
+        * 24;
+
+    return Math.round(
+        (
+            secondDate.getTime()
+            - firstDate.getTime()
+        )
+        / millisecondsPerDay
     );
 }
 
-function resetFoodForm() {
+function parseLocalDate(
+    dateValue
+) {
+
+    if (!dateValue) {
+        return null;
+    }
+
+    const parts =
+        dateValue.split("-");
+
+    if (parts.length !== 3) {
+        return null;
+    }
+
+    const year =
+        Number(parts[0]);
+
+    const month =
+        Number(parts[1]);
+
+    const day =
+        Number(parts[2]);
+
+    const date =
+        new Date(
+            year,
+            month - 1,
+            day
+        );
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return null;
+    }
+
+    return date;
+}
+
+function formatReminderDays(
+    reminderDays
+) {
+
+    const days =
+        Number(
+            reminderDays ?? 0
+        );
+
+    if (days === 0) {
+
+        return "On expiry date";
+    }
+
+    if (days === 1) {
+
+        return "1 day before";
+    }
+
+    return `${days} days before`;
+}
+
+function formatDate(
+    dateValue
+) {
+
+    if (!dateValue) {
+        return "";
+    }
+
+    const parts =
+        dateValue.split("-");
+
+    if (parts.length !== 3) {
+
+        return dateValue;
+    }
+
+    return (
+        `${parts[2]}-`
+        + `${parts[1]}-`
+        + `${parts[0]}`
+    );
+}
+
+function resetFoodForm(
+    clearMessage = true
+) {
+
     const form =
-        document.getElementById("foodForm");
+        document.getElementById(
+            "foodForm"
+        );
 
     if (form) {
         form.reset();
     }
 
     const foodId =
-        document.getElementById("foodId");
+        document.getElementById(
+            "foodId"
+        );
 
     if (foodId) {
         foodId.value = "";
+    }
+
+    const reminderElement =
+        document.getElementById(
+            "reminderDays"
+        );
+
+    if (reminderElement) {
+
+        /*
+         * Use 0 as the safest default.
+         * This means "On expiry date".
+         */
+        reminderElement.value =
+            "0";
     }
 
     setElementText(
@@ -1161,13 +1725,28 @@ function resetFoodForm() {
         );
 
     if (cancelButton) {
-        cancelButton.classList.add(
-            "hidden"
+
+        cancelButton
+            .classList
+            .add(
+                "hidden"
+            );
+    }
+
+    if (clearMessage) {
+
+        setMessage(
+            document.getElementById(
+                "foodMessage"
+            ),
+            "",
+            ""
         );
     }
 }
 
 function setTableTitle(title) {
+
     setElementText(
         "tableTitle",
         title
@@ -1175,6 +1754,7 @@ function setTableTitle(title) {
 }
 
 function showTableLoading() {
+
     const tableBody =
         document.getElementById(
             "foodTableBody"
@@ -1187,7 +1767,7 @@ function showTableLoading() {
     tableBody.innerHTML = `
         <tr>
             <td
-                colspan="7"
+                colspan="8"
                 class="empty-row"
             >
                 Loading...
@@ -1196,7 +1776,10 @@ function showTableLoading() {
     `;
 }
 
-function displayTableError(message) {
+function displayTableError(
+    message
+) {
+
     const tableBody =
         document.getElementById(
             "foodTableBody"
@@ -1209,7 +1792,7 @@ function displayTableError(message) {
     tableBody.innerHTML = `
         <tr>
             <td
-                colspan="7"
+                colspan="8"
                 class="empty-row"
             >
                 ${escapeHtml(
@@ -1226,6 +1809,7 @@ function setMessage(
     text,
     type
 ) {
+
     if (!element) {
         return;
     }
@@ -1243,12 +1827,14 @@ function setElementText(
     elementId,
     value
 ) {
+
     const element =
         document.getElementById(
             elementId
         );
 
     if (element) {
+
         element.textContent =
             String(value);
     }
@@ -1258,12 +1844,14 @@ function addClickListener(
     elementId,
     listener
 ) {
+
     const element =
         document.getElementById(
             elementId
         );
 
     if (element) {
+
         element.addEventListener(
             "click",
             listener
@@ -1275,12 +1863,14 @@ function addSubmitListener(
     elementId,
     listener
 ) {
+
     const element =
         document.getElementById(
             elementId
         );
 
     if (element) {
+
         element.addEventListener(
             "submit",
             listener
@@ -1291,6 +1881,7 @@ function addSubmitListener(
 async function readResponseJson(
     response
 ) {
+
     const text =
         await response.text();
 
@@ -1299,8 +1890,18 @@ async function readResponseJson(
     }
 
     try {
-        return JSON.parse(text);
+
+        return JSON.parse(
+            text
+        );
+
     } catch (error) {
+
+        console.error(
+            "Invalid backend response:",
+            text
+        );
+
         throw new Error(
             `Backend returned an invalid response (${response.status})`
         );
@@ -1308,17 +1909,30 @@ async function readResponseJson(
 }
 
 function logout() {
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userEmail");
+
+    localStorage.removeItem(
+        "userId"
+    );
+
+    localStorage.removeItem(
+        "userName"
+    );
+
+    localStorage.removeItem(
+        "userEmail"
+    );
 
     window.location.href =
         "login.html";
 }
 
 function escapeHtml(value) {
-    if (value === undefined
-            || value === null) {
+
+    if (
+        value === undefined
+        || value === null
+    ) {
+
         return "";
     }
 
@@ -1344,25 +1958,3 @@ function escapeHtml(value) {
             "&#039;"
         );
 }
-
-const reminderDays =
-    Number(document.getElementById("reminderDays").value);
-
-const foodData = {
-    itemName:
-        document.getElementById("itemName").value.trim(),
-
-    category:
-        document.getElementById("category").value,
-
-    quantity:
-        Number(document.getElementById("quantity").value),
-
-    purchaseDate:
-        document.getElementById("purchaseDate").value,
-
-    expiryDate:
-        document.getElementById("expiryDate").value,
-
-    reminderDays: reminderDays
-};
