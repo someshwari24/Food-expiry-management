@@ -20,26 +20,52 @@ public class EmailService {
 
     public EmailService() {
 
-        senderEmail = System.getenv("EMAIL_USERNAME");
-        senderPassword = System.getenv("EMAIL_APP_PASSWORD");
+        senderEmail =
+                getEnvironmentValue(
+                        "EMAIL_USERNAME"
+                );
+
+        senderPassword =
+                getEnvironmentValue(
+                        "EMAIL_APP_PASSWORD"
+                );
 
         String configuredHost =
-                System.getenv("EMAIL_SMTP_HOST");
+                getEnvironmentValue(
+                        "EMAIL_SMTP_HOST"
+                );
 
         String configuredPort =
-                System.getenv("EMAIL_SMTP_PORT");
+                getEnvironmentValue(
+                        "EMAIL_SMTP_PORT"
+                );
 
         smtpHost =
                 configuredHost == null
-                        || configuredHost.isBlank()
                         ? "smtp.gmail.com"
                         : configuredHost;
 
         smtpPort =
                 configuredPort == null
-                        || configuredPort.isBlank()
                         ? "587"
                         : configuredPort;
+
+        System.out.println(
+                "Email username configured: "
+                        + (senderEmail != null)
+        );
+
+        System.out.println(
+                "Email password configured: "
+                        + (senderPassword != null)
+        );
+
+        System.out.println(
+                "SMTP configuration: "
+                        + smtpHost
+                        + ":"
+                        + smtpPort
+        );
     }
 
     public boolean isConfigured() {
@@ -79,6 +105,28 @@ public class EmailService {
             return false;
         }
 
+        receiverEmail =
+                receiverEmail.trim();
+
+        try {
+
+            InternetAddress receiverAddress =
+                    new InternetAddress(
+                            receiverEmail
+                    );
+
+            receiverAddress.validate();
+
+        } catch (Exception exception) {
+
+            System.err.println(
+                    "Invalid receiver email address: "
+                            + receiverEmail
+            );
+
+            return false;
+        }
+
         Properties properties =
                 createMailProperties();
 
@@ -99,40 +147,62 @@ public class EmailService {
                         }
                 );
 
+        /*
+         * Temporarily keep this true while testing.
+         * It prints SMTP communication in Render logs.
+         */
+        session.setDebug(false);
+
         try {
 
-            MimeMessage message =
-                    new MimeMessage(session);
-
-            message.setFrom(
-                    new InternetAddress(
-                            senderEmail,
-                            "Food Expiry Management System",
-                            StandardCharsets.UTF_8.name()
-                    )
-            );
-
-            message.setRecipients(
-                    Message.RecipientType.TO,
-                    InternetAddress.parse(receiverEmail)
-            );
-
-            message.setSubject(
-                    "Food Expiry Reminder: " + foodName,
-                    StandardCharsets.UTF_8.name()
-            );
+            String safeFoodName =
+                    foodName == null
+                            || foodName.isBlank()
+                            ? "Food item"
+                            : foodName.trim();
 
             String safeUserName =
                     userName == null
                             || userName.isBlank()
                             ? "User"
-                            : userName;
+                            : userName.trim();
+
+            String safeExpiryDate =
+                    expiryDate == null
+                            || expiryDate.isBlank()
+                            ? "Not available"
+                            : expiryDate.trim();
+
+            MimeMessage message =
+                    new MimeMessage(session);
+
+            InternetAddress senderAddress =
+                    new InternetAddress(
+                            senderEmail,
+                            "Food Expiry Management System",
+                            StandardCharsets.UTF_8.name()
+                    );
+
+            message.setFrom(senderAddress);
+
+            message.setRecipient(
+                    Message.RecipientType.TO,
+                    new InternetAddress(
+                            receiverEmail
+                    )
+            );
+
+            message.setSubject(
+                    "Food Expiry Reminder: "
+                            + safeFoodName,
+                    StandardCharsets.UTF_8.name()
+            );
 
             String htmlBody =
                     createHtmlBody(
                             safeUserName,
-                            foodName,
-                            expiryDate,
+                            safeFoodName,
+                            safeExpiryDate,
                             remainingDays
                     );
 
@@ -141,13 +211,20 @@ public class EmailService {
                     "text/html; charset=UTF-8"
             );
 
+            message.saveChanges();
+
+            System.out.println(
+                    "Attempting to send expiry email to: "
+                            + receiverEmail
+            );
+
             Transport.send(message);
 
             System.out.println(
-                    "Expiry notification sent to "
+                    "Expiry notification sent successfully to "
                             + receiverEmail
                             + " for food: "
-                            + foodName
+                            + safeFoodName
             );
 
             return true;
@@ -157,7 +234,10 @@ public class EmailService {
             System.err.println(
                     "Failed to send email to "
                             + receiverEmail
-                            + ": "
+                            + ". Error type: "
+                            + exception.getClass()
+                            .getSimpleName()
+                            + ". Message: "
                             + exception.getMessage()
             );
 
@@ -198,18 +278,28 @@ public class EmailService {
         );
 
         properties.put(
+                "mail.smtp.ssl.trust",
+                smtpHost
+        );
+
+        properties.put(
+                "mail.smtp.ssl.protocols",
+                "TLSv1.2"
+        );
+
+        properties.put(
                 "mail.smtp.connectiontimeout",
-                "10000"
+                "20000"
         );
 
         properties.put(
                 "mail.smtp.timeout",
-                "10000"
+                "20000"
         );
 
         properties.put(
                 "mail.smtp.writetimeout",
-                "10000"
+                "20000"
         );
 
         return properties;
@@ -224,7 +314,12 @@ public class EmailService {
 
         String expiryMessage;
 
-        if (remainingDays == 0) {
+        if (remainingDays < 0) {
+
+            expiryMessage =
+                    "has already expired";
+
+        } else if (remainingDays == 0) {
 
             expiryMessage =
                     "expires today";
@@ -244,29 +339,40 @@ public class EmailService {
 
         return """
                 <!DOCTYPE html>
-                <html>
+                <html lang="en">
                 <head>
                     <meta charset="UTF-8">
+                    <meta name="viewport"
+                          content="width=device-width, initial-scale=1.0">
                 </head>
+
                 <body style="
                     margin:0;
                     padding:20px;
                     background:#f5f5f5;
                     font-family:Arial,sans-serif;
+                    color:#333333;
                 ">
+
                     <div style="
                         max-width:600px;
-                        margin:auto;
-                        background:white;
+                        margin:0 auto;
+                        background:#ffffff;
                         padding:30px;
                         border-radius:10px;
                         box-shadow:0 2px 8px rgba(0,0,0,0.1);
                     ">
-                        <h2 style="color:#2e7d32;">
+
+                        <h2 style="
+                            color:#2e7d32;
+                            margin-top:0;
+                        ">
                             Food Expiry Reminder
                         </h2>
 
-                        <p>Hello %s,</p>
+                        <p>
+                            Hello %s,
+                        </p>
 
                         <p>
                             Your food item
@@ -279,47 +385,91 @@ public class EmailService {
                             padding:15px;
                             border-radius:6px;
                             margin:20px 0;
+                            border-left:5px solid #ffc107;
                         ">
-                            <strong>Food item:</strong> %s
-                            <br>
-                            <strong>Expiry date:</strong> %s
+
+                            <strong>Food item:</strong>
+                            %s
+
+                            <br><br>
+
+                            <strong>Expiry date:</strong>
+                            %s
+
                         </div>
 
                         <p>
-                            Please consume, donate or safely
+                            Please consume, donate, or safely
                             dispose of the item before it expires.
                         </p>
 
                         <p style="
-                            color:#777;
+                            color:#777777;
                             margin-top:30px;
                             font-size:13px;
                         ">
                             Food Expiry Management System
                         </p>
+
                     </div>
+
                 </body>
                 </html>
                 """.formatted(
                 escapeHtml(userName),
                 escapeHtml(foodName),
-                expiryMessage,
+                escapeHtml(expiryMessage),
                 escapeHtml(foodName),
                 escapeHtml(expiryDate)
         );
     }
 
-    private String escapeHtml(String value) {
+    private String getEnvironmentValue(
+            String variableName
+    ) {
+
+        String value =
+                System.getenv(
+                        variableName
+                );
+
+        if (value == null
+                || value.isBlank()) {
+
+            return null;
+        }
+
+        return value.trim();
+    }
+
+    private String escapeHtml(
+            String value
+    ) {
 
         if (value == null) {
             return "";
         }
 
         return value
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#39;");
+                .replace(
+                        "&",
+                        "&amp;"
+                )
+                .replace(
+                        "<",
+                        "&lt;"
+                )
+                .replace(
+                        ">",
+                        "&gt;"
+                )
+                .replace(
+                        "\"",
+                        "&quot;"
+                )
+                .replace(
+                        "'",
+                        "&#39;"
+                );
     }
 }

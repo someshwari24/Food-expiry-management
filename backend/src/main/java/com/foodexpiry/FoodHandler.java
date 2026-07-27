@@ -15,6 +15,7 @@ import org.bson.types.ObjectId;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 public class FoodHandler implements HttpHandler {
@@ -68,29 +69,32 @@ public class FoodHandler implements HttpHandler {
                         );
             }
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException exception) {
 
             ResponseUtil.sendMessage(
                     exchange,
                     400,
                     "error",
-                    e.getMessage()
+                    exception.getMessage()
             );
 
-        } catch (Exception e) {
+        } catch (Exception exception) {
+
+            exception.printStackTrace();
 
             ResponseUtil.sendMessage(
                     exchange,
                     500,
                     "error",
-                    e.getMessage()
+                    exception.getMessage()
             );
         }
     }
 
     private MongoCollection<Document> getCollection() {
 
-        return DBConnection.getDatabase()
+        return DBConnection
+                .getDatabase()
                 .getCollection("food_items");
     }
 
@@ -112,16 +116,37 @@ public class FoodHandler implements HttpHandler {
             return;
         }
 
-        Document input = RequestUtil.readJson(exchange);
+        Document input =
+                RequestUtil.readJson(exchange);
 
-        String userId = input.getString("userId");
-        String itemName = input.getString("itemName");
-        String category = input.getString("category");
-        Integer quantity = input.getInteger("quantity");
+        String userId =
+                input.getString("userId");
+
+        String itemName =
+                input.getString("itemName");
+
+        String category =
+                input.getString("category");
+
+        Integer quantity =
+                readInteger(
+                        input,
+                        "quantity",
+                        null
+                );
+
         String purchaseDate =
                 input.getString("purchaseDate");
+
         String expiryDate =
                 input.getString("expiryDate");
+
+        Integer reminderDays =
+                readInteger(
+                        input,
+                        "reminderDays",
+                        3
+                );
 
         validateFood(
                 userId,
@@ -129,39 +154,66 @@ public class FoodHandler implements HttpHandler {
                 category,
                 quantity,
                 purchaseDate,
-                expiryDate
+                expiryDate,
+                reminderDays
         );
 
-        Document food = new Document()
-                .append("userId", userId)
-                .append("itemName", itemName)
-                .append("category", category)
-                .append("quantity", quantity)
-                .append(
-                        "purchaseDate",
-                        purchaseDate
-                )
-                .append(
-                        "expiryDate",
-                        expiryDate
-                )
-                .append(
-                        "createdAt",
-                        LocalDate.now().toString()
-                );
+        Document food =
+                new Document()
+                        .append(
+                                "userId",
+                                userId
+                        )
+                        .append(
+                                "itemName",
+                                itemName.trim()
+                        )
+                        .append(
+                                "category",
+                                category
+                        )
+                        .append(
+                                "quantity",
+                                quantity
+                        )
+                        .append(
+                                "purchaseDate",
+                                purchaseDate
+                        )
+                        .append(
+                                "expiryDate",
+                                expiryDate
+                        )
+                        .append(
+                                "reminderDays",
+                                reminderDays
+                        )
+                        .append(
+                                "notificationSent",
+                                false
+                        )
+                        .append(
+                                "createdAt",
+                                LocalDate.now().toString()
+                        );
 
         getCollection().insertOne(food);
 
-        Document response = new Document()
-                .append("status", "success")
-                .append(
-                        "message",
-                        "Food item added successfully"
-                )
-                .append(
-                        "id",
-                        food.getObjectId("_id").toHexString()
-                );
+        Document response =
+                new Document()
+                        .append(
+                                "status",
+                                "success"
+                        )
+                        .append(
+                                "message",
+                                "Food item added successfully"
+                        )
+                        .append(
+                                "id",
+                                food.getObjectId("_id")
+                                        .toHexString()
+                        );
 
         ResponseUtil.sendJson(
                 exchange,
@@ -189,9 +241,12 @@ public class FoodHandler implements HttpHandler {
         }
 
         Map<String, String> parameters =
-                RequestUtil.getQueryParameters(exchange);
+                RequestUtil.getQueryParameters(
+                        exchange
+                );
 
-        String userId = parameters.get("userId");
+        String userId =
+                parameters.get("userId");
 
         if (isBlank(userId)) {
 
@@ -207,7 +262,10 @@ public class FoodHandler implements HttpHandler {
 
         FindIterable<Document> foods =
                 getCollection().find(
-                        Filters.eq("userId", userId)
+                        Filters.eq(
+                                "userId",
+                                userId
+                        )
                 );
 
         ResponseUtil.sendJson(
@@ -235,19 +293,44 @@ public class FoodHandler implements HttpHandler {
             return;
         }
 
-        Document input = RequestUtil.readJson(exchange);
+        Document input =
+                RequestUtil.readJson(exchange);
 
-        String id = input.getString("id");
-        String userId = input.getString("userId");
-        String itemName = input.getString("itemName");
-        String category = input.getString("category");
-        Integer quantity = input.getInteger("quantity");
+        String id =
+                input.getString("id");
+
+        String userId =
+                input.getString("userId");
+
+        String itemName =
+                input.getString("itemName");
+
+        String category =
+                input.getString("category");
+
+        Integer quantity =
+                readInteger(
+                        input,
+                        "quantity",
+                        null
+                );
+
         String purchaseDate =
                 input.getString("purchaseDate");
+
         String expiryDate =
                 input.getString("expiryDate");
 
-        if (!ObjectId.isValid(id)) {
+        Integer reminderDays =
+                readInteger(
+                        input,
+                        "reminderDays",
+                        3
+                );
+
+        if (isBlank(id)
+                || !ObjectId.isValid(id)) {
+
             throw new IllegalArgumentException(
                     "Invalid food item ID"
             );
@@ -259,27 +342,59 @@ public class FoodHandler implements HttpHandler {
                 category,
                 quantity,
                 purchaseDate,
-                expiryDate
+                expiryDate,
+                reminderDays
         );
 
-        Bson filter = Filters.and(
-                Filters.eq("_id", new ObjectId(id)),
-                Filters.eq("userId", userId)
-        );
+        Bson filter =
+                Filters.and(
+                        Filters.eq(
+                                "_id",
+                                new ObjectId(id)
+                        ),
+                        Filters.eq(
+                                "userId",
+                                userId
+                        )
+                );
 
-        Bson updates = Updates.combine(
-                Updates.set("itemName", itemName),
-                Updates.set("category", category),
-                Updates.set("quantity", quantity),
-                Updates.set(
-                        "purchaseDate",
-                        purchaseDate
-                ),
-                Updates.set(
-                        "expiryDate",
-                        expiryDate
-                )
-        );
+        Bson updates =
+                Updates.combine(
+                        Updates.set(
+                                "itemName",
+                                itemName.trim()
+                        ),
+                        Updates.set(
+                                "category",
+                                category
+                        ),
+                        Updates.set(
+                                "quantity",
+                                quantity
+                        ),
+                        Updates.set(
+                                "purchaseDate",
+                                purchaseDate
+                        ),
+                        Updates.set(
+                                "expiryDate",
+                                expiryDate
+                        ),
+                        Updates.set(
+                                "reminderDays",
+                                reminderDays
+                        ),
+                        Updates.set(
+                                "notificationSent",
+                                false
+                        ),
+                        Updates.unset(
+                                "notificationSentDate"
+                        ),
+                        Updates.unset(
+                                "notificationReminderDays"
+                        )
+                );
 
         UpdateResult result =
                 getCollection().updateOne(
@@ -325,18 +440,35 @@ public class FoodHandler implements HttpHandler {
             return;
         }
 
-        Document input = RequestUtil.readJson(exchange);
+        Document input =
+                RequestUtil.readJson(exchange);
 
-        String id = input.getString("id");
-        String userId = input.getString("userId");
+        String id =
+                input.getString("id");
 
-        if (!ObjectId.isValid(id)) {
+        String userId =
+                input.getString("userId");
+
+        if (isBlank(id)
+                || !ObjectId.isValid(id)) {
 
             ResponseUtil.sendMessage(
                     exchange,
                     400,
                     "error",
                     "Invalid food item ID"
+            );
+
+            return;
+        }
+
+        if (isBlank(userId)) {
+
+            ResponseUtil.sendMessage(
+                    exchange,
+                    400,
+                    "error",
+                    "userId is required"
             );
 
             return;
@@ -395,11 +527,18 @@ public class FoodHandler implements HttpHandler {
         }
 
         Map<String, String> parameters =
-                RequestUtil.getQueryParameters(exchange);
+                RequestUtil.getQueryParameters(
+                        exchange
+                );
 
-        String userId = parameters.get("userId");
-        String itemName = parameters.get("itemName");
-        String category = parameters.get("category");
+        String userId =
+                parameters.get("userId");
+
+        String itemName =
+                parameters.get("itemName");
+
+        String category =
+                parameters.get("category");
 
         if (isBlank(userId)) {
 
@@ -413,31 +552,36 @@ public class FoodHandler implements HttpHandler {
             return;
         }
 
-        Bson filter = Filters.eq(
-                "userId",
-                userId
-        );
+        Bson filter =
+                Filters.eq(
+                        "userId",
+                        userId
+                );
 
         if (!isBlank(itemName)) {
-            filter = Filters.and(
-                    filter,
-                    Filters.regex(
-                            "itemName",
-                            itemName,
-                            "i"
-                    )
-            );
+
+            filter =
+                    Filters.and(
+                            filter,
+                            Filters.regex(
+                                    "itemName",
+                                    itemName,
+                                    "i"
+                            )
+                    );
         }
 
         if (!isBlank(category)) {
-            filter = Filters.and(
-                    filter,
-                    Filters.regex(
-                            "category",
-                            "^" + category + "$",
-                            "i"
-                    )
-            );
+
+            filter =
+                    Filters.and(
+                            filter,
+                            Filters.regex(
+                                    "category",
+                                    "^" + category + "$",
+                                    "i"
+                            )
+                    );
         }
 
         FindIterable<Document> foods =
@@ -469,50 +613,113 @@ public class FoodHandler implements HttpHandler {
         }
 
         Map<String, String> parameters =
-                RequestUtil.getQueryParameters(exchange);
+                RequestUtil.getQueryParameters(
+                        exchange
+                );
 
-        String userId = parameters.get("userId");
+        String userId =
+                parameters.get("userId");
+
+        if (isBlank(userId)) {
+
+            ResponseUtil.sendMessage(
+                    exchange,
+                    400,
+                    "error",
+                    "userId is required"
+            );
+
+            return;
+        }
 
         int days = 7;
 
-        if (parameters.containsKey("days")) {
-            days = Integer.parseInt(
-                    parameters.get("days")
+        if (parameters.containsKey("days")
+                && !isBlank(parameters.get("days"))) {
+
+            try {
+
+                days =
+                        Integer.parseInt(
+                                parameters.get("days")
+                        );
+
+            } catch (NumberFormatException exception) {
+
+                throw new IllegalArgumentException(
+                        "Days must be a valid number"
+                );
+            }
+        }
+
+        if (days < 0 || days > 365) {
+
+            throw new IllegalArgumentException(
+                    "Days must be between 0 and 365"
             );
         }
 
-        LocalDate today = LocalDate.now();
-        LocalDate lastDate = today.plusDays(days);
+        LocalDate today =
+                LocalDate.now();
+
+        LocalDate lastDate =
+                today.plusDays(days);
 
         FindIterable<Document> foods =
                 getCollection().find(
-                        Filters.eq("userId", userId)
+                        Filters.eq(
+                                "userId",
+                                userId
+                        )
                 );
 
-        StringBuilder json = new StringBuilder("[");
+        StringBuilder json =
+                new StringBuilder("[");
+
         boolean first = true;
 
         for (Document food : foods) {
 
-            LocalDate expiryDate =
-                    LocalDate.parse(
-                            food.getString("expiryDate")
+            String expiryDateValue =
+                    food.getString("expiryDate");
+
+            if (isBlank(expiryDateValue)) {
+                continue;
+            }
+
+            try {
+
+                LocalDate expiryDate =
+                        LocalDate.parse(
+                                expiryDateValue
+                        );
+
+                boolean isNotExpired =
+                        !expiryDate.isBefore(today);
+
+                boolean isWithinRange =
+                        !expiryDate.isAfter(lastDate);
+
+                if (isNotExpired
+                        && isWithinRange) {
+
+                    if (!first) {
+                        json.append(",");
+                    }
+
+                    json.append(
+                            food.toJson()
                     );
 
-            boolean isNotExpired =
-                    !expiryDate.isBefore(today);
-
-            boolean isWithinRange =
-                    !expiryDate.isAfter(lastDate);
-
-            if (isNotExpired && isWithinRange) {
-
-                if (!first) {
-                    json.append(",");
+                    first = false;
                 }
 
-                json.append(food.toJson());
-                first = false;
+            } catch (DateTimeParseException exception) {
+
+                System.err.println(
+                        "Invalid expiry date for food: "
+                                + food.get("_id")
+                );
             }
         }
 
@@ -544,34 +751,76 @@ public class FoodHandler implements HttpHandler {
         }
 
         Map<String, String> parameters =
-                RequestUtil.getQueryParameters(exchange);
+                RequestUtil.getQueryParameters(
+                        exchange
+                );
 
-        String userId = parameters.get("userId");
-        LocalDate today = LocalDate.now();
+        String userId =
+                parameters.get("userId");
+
+        if (isBlank(userId)) {
+
+            ResponseUtil.sendMessage(
+                    exchange,
+                    400,
+                    "error",
+                    "userId is required"
+            );
+
+            return;
+        }
+
+        LocalDate today =
+                LocalDate.now();
 
         FindIterable<Document> foods =
                 getCollection().find(
-                        Filters.eq("userId", userId)
+                        Filters.eq(
+                                "userId",
+                                userId
+                        )
                 );
 
-        StringBuilder json = new StringBuilder("[");
+        StringBuilder json =
+                new StringBuilder("[");
+
         boolean first = true;
 
         for (Document food : foods) {
 
-            LocalDate expiryDate =
-                    LocalDate.parse(
-                            food.getString("expiryDate")
+            String expiryDateValue =
+                    food.getString("expiryDate");
+
+            if (isBlank(expiryDateValue)) {
+                continue;
+            }
+
+            try {
+
+                LocalDate expiryDate =
+                        LocalDate.parse(
+                                expiryDateValue
+                        );
+
+                if (expiryDate.isBefore(today)) {
+
+                    if (!first) {
+                        json.append(",");
+                    }
+
+                    json.append(
+                            food.toJson()
                     );
 
-            if (expiryDate.isBefore(today)) {
-
-                if (!first) {
-                    json.append(",");
+                    first = false;
                 }
 
-                json.append(food.toJson());
-                first = false;
+            } catch (DateTimeParseException exception) {
+
+                System.err.println(
+                        "Invalid expiry date for food: "
+                                + food.get("_id")
+                );
             }
         }
 
@@ -588,7 +837,9 @@ public class FoodHandler implements HttpHandler {
             FindIterable<Document> documents
     ) {
 
-        StringBuilder json = new StringBuilder("[");
+        StringBuilder json =
+                new StringBuilder("[");
+
         boolean first = true;
 
         for (Document document : documents) {
@@ -597,7 +848,10 @@ public class FoodHandler implements HttpHandler {
                 json.append(",");
             }
 
-            json.append(document.toJson());
+            json.append(
+                    document.toJson()
+            );
+
             first = false;
         }
 
@@ -612,7 +866,8 @@ public class FoodHandler implements HttpHandler {
             String category,
             Integer quantity,
             String purchaseDate,
-            String expiryDate
+            String expiryDate,
+            Integer reminderDays
     ) {
 
         if (isBlank(userId)
@@ -620,7 +875,8 @@ public class FoodHandler implements HttpHandler {
                 || isBlank(category)
                 || quantity == null
                 || isBlank(purchaseDate)
-                || isBlank(expiryDate)) {
+                || isBlank(expiryDate)
+                || reminderDays == null) {
 
             throw new IllegalArgumentException(
                     "All food fields are required"
@@ -628,18 +884,31 @@ public class FoodHandler implements HttpHandler {
         }
 
         if (quantity <= 0) {
+
             throw new IllegalArgumentException(
                     "Quantity must be greater than zero"
+            );
+        }
+
+        if (reminderDays < 0
+                || reminderDays > 30) {
+
+            throw new IllegalArgumentException(
+                    "Reminder days must be between 0 and 30"
             );
         }
 
         try {
 
             LocalDate purchase =
-                    LocalDate.parse(purchaseDate);
+                    LocalDate.parse(
+                            purchaseDate
+                    );
 
             LocalDate expiry =
-                    LocalDate.parse(expiryDate);
+                    LocalDate.parse(
+                            expiryDate
+                    );
 
             if (expiry.isBefore(purchase)) {
 
@@ -648,7 +917,22 @@ public class FoodHandler implements HttpHandler {
                 );
             }
 
-        } catch (DateTimeParseException e) {
+            long remainingDays =
+                    ChronoUnit.DAYS.between(
+                            LocalDate.now(),
+                            expiry
+                    );
+
+            if (remainingDays >= 0
+                    && reminderDays > remainingDays) {
+
+                throw new IllegalArgumentException(
+                        "Reminder days cannot be greater "
+                                + "than the days remaining until expiry"
+                );
+            }
+
+        } catch (DateTimeParseException exception) {
 
             throw new IllegalArgumentException(
                     "Date format must be yyyy-MM-dd"
@@ -656,7 +940,42 @@ public class FoodHandler implements HttpHandler {
         }
     }
 
-    private boolean isBlank(String value) {
-        return value == null || value.isBlank();
+    private Integer readInteger(
+            Document document,
+            String field,
+            Integer defaultValue
+    ) {
+
+        Object value =
+                document.get(field);
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        try {
+
+            return Integer.parseInt(
+                    value.toString()
+            );
+
+        } catch (NumberFormatException exception) {
+
+            throw new IllegalArgumentException(
+                    field + " must be a valid number"
+            );
+        }
+    }
+
+    private boolean isBlank(
+            String value
+    ) {
+
+        return value == null
+                || value.isBlank();
     }
 }

@@ -16,14 +16,11 @@ import java.util.List;
 
 public class ExpiryNotificationService {
 
-    private static final int REMINDER_DAYS = 3;
+    // Used when the food document does not contain reminderDays.
+    private static final int DEFAULT_REMINDER_DAYS = 3;
 
-    private final MongoCollection<Document>
-            foodCollection;
-
-    private final MongoCollection<Document>
-            userCollection;
-
+    private final MongoCollection<Document> foodCollection;
+    private final MongoCollection<Document> userCollection;
     private final EmailService emailService;
 
     public ExpiryNotificationService(
@@ -149,20 +146,31 @@ public class ExpiryNotificationService {
             return false;
         }
 
+        /*
+         * Read the reminder chosen by the user.
+         * If no value is available, use 3 days.
+         */
+        int reminderDays =
+                getReminderDays(food);
+
         long remainingDays =
                 ChronoUnit.DAYS.between(
                         today,
                         expiryDate
                 );
 
-        if (remainingDays != REMINDER_DAYS) {
-
+        /*
+         * Send the email when the remaining days equal
+         * the reminder days selected by the user.
+         */
+        if (remainingDays != reminderDays) {
             return false;
         }
 
         if (wasNotificationSentToday(
                 food,
-                today
+                today,
+                reminderDays
         )) {
 
             return false;
@@ -242,13 +250,47 @@ public class ExpiryNotificationService {
 
             markNotificationAsSent(
                     food,
-                    today
+                    today,
+                    reminderDays
             );
 
             return true;
         }
 
         return false;
+    }
+
+    private int getReminderDays(
+            Document food
+    ) {
+
+        Object value =
+                food.get("reminderDays");
+
+        if (value == null) {
+            return DEFAULT_REMINDER_DAYS;
+        }
+
+        try {
+
+            int reminderDays =
+                    Integer.parseInt(
+                            value.toString()
+                    );
+
+            /*
+             * Prevent invalid reminder values.
+             */
+            if (reminderDays < 0) {
+                return DEFAULT_REMINDER_DAYS;
+            }
+
+            return reminderDays;
+
+        } catch (NumberFormatException exception) {
+
+            return DEFAULT_REMINDER_DAYS;
+        }
     }
 
     private Document findUserById(
@@ -298,7 +340,8 @@ public class ExpiryNotificationService {
 
     private boolean wasNotificationSentToday(
             Document food,
-            LocalDate today
+            LocalDate today,
+            int reminderDays
     ) {
 
         String sentDate =
@@ -307,19 +350,21 @@ public class ExpiryNotificationService {
                         "notificationSentDate"
                 );
 
-        Integer reminderDays =
+        Integer previouslyUsedReminderDays =
                 food.getInteger(
                         "notificationReminderDays"
                 );
 
         return today.toString().equals(sentDate)
-                && reminderDays != null
-                && reminderDays == REMINDER_DAYS;
+                && previouslyUsedReminderDays != null
+                && previouslyUsedReminderDays
+                == reminderDays;
     }
 
     private void markNotificationAsSent(
             Document food,
-            LocalDate today
+            LocalDate today,
+            int reminderDays
     ) {
 
         Object mongoId =
@@ -351,7 +396,7 @@ public class ExpiryNotificationService {
                         ),
                         Updates.set(
                                 "notificationReminderDays",
-                                REMINDER_DAYS
+                                reminderDays
                         )
                 )
         );
