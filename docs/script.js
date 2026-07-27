@@ -1344,3 +1344,25 @@ function escapeHtml(value) {
             "&#039;"
         );
 }
+
+const reminderDays =
+    Number(document.getElementById("reminderDays").value);
+
+const foodData = {
+    itemName:
+        document.getElementById("itemName").value.trim(),
+
+    category:
+        document.getElementById("category").value,
+
+    quantity:
+        Number(document.getElementById("quantity").value),
+
+    purchaseDate:
+        document.getElementById("purchaseDate").value,
+
+    expiryDate:
+        document.getElementById("expiryDate").value,
+
+    reminderDays: reminderDays
+};
